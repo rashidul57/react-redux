@@ -79,7 +79,7 @@ session = expressSession({
 app.set('view engine', 'html');
 //app.set('views', __dirname);
 app.set('view options', { layout: false });
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/build'));
 app.use(compress());
 app.use(session);
 app.use(bodyParser.json({limit: '10mb', type:'application/json'}));
@@ -134,7 +134,7 @@ app.use(morgan('dev'));
 controllers.call(this, app);
 
 
-app.get('/:route(|index)', handlePageRequest);
+app.get('/:route(|index|static/*)', handlePageRequest);
 
 function handlePageRequest(req, res, next) {
     res.sendFile(__dirname + '/build/index.html');
