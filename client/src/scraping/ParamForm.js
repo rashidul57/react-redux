@@ -1,13 +1,12 @@
 import React from 'react';
 import './form.scss';
-import { add } from './services/dataService';
+import { add } from '../services/dataService';
 
 export class ParamForm extends React.Component {
     constructor(props) {
       super(props);
       this.state = {findText: 'General Contractor', location: 'Hartford, CT'};
 
-      console.log(add(4, 5));
     }
   
     handleChange(event, prop) {
@@ -25,10 +24,6 @@ export class ParamForm extends React.Component {
       .then(
         (result) => {
           console.log(result);
-          // this.setState({
-          //   isLoaded: true,
-          //   items: result.items
-          // });
         },
         // Note: it's important to handle errors here
         // instead of a catch() block so that we don't swallow

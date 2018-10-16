@@ -20,7 +20,7 @@ function scrapeSite(params) {
                     value.link = link;
                     data.push(value);
                     console.log(value);
-                    sessionSocketService.relayUploadProgress({}, null, '', {counter: counter});
+                    sessionSocketService.relayProgress({counter: counter, event: 'scraping-update', bypassSession: true});
                     counter++;
                     done();
                 });

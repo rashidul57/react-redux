@@ -1,0 +1,11 @@
+body{
+    form{
+        margin: 100px auto;
+        width: 300px;
+        display: grid;
+        grid-row-gap: 10px;
+        input{
+            width: 100%;
+        }
+    }
+}

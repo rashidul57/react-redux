@@ -1,19 +1,13 @@
 import React from 'react';
 import ReactDOM from "react-dom";
+import { ParamForm } from './scraping/ParamForm.js';
+import { Login } from './login/Login.js';
+import { socket } from './services/socketClient';
 
-const App = () => (
-    <div className='ui text container'>
-      <h2 className='ui dividing header red'>
-        Which body of water?
-      </h2>
-    </div>
-);
-
-export default App;
 
 
 ReactDOM.render(
-    <App />,
+    <Login />,
     document.getElementById('root')
 );
 

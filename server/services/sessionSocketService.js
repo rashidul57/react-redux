@@ -78,7 +78,7 @@ module.exports = {
             return (con.user && con.user._id && params.user && params.user._id && con.user._id.toString() === params.user._id.toString());
         });
 
-        if (userConnection) {
+        if (userConnection || params.bypassSession) {
             setImmediate(function () {
                 userConnection.pub.publish(channel, JSON.stringify(params));
             });
@@ -107,16 +107,12 @@ module.exports = {
             return true;
         }
     },
-    relayProgress: function (sessionUser, metadata={}) {
-        var data = {user: sessionUser};
-        if (metadata) {
-            data.metadata = metadata;
-        }
-        if (!metadata.event) {
+    relayProgress: function (data={}) {
+        if (!data.event) {
             return console.log('socket event not provided');
         }
         // console.log('data', data);
-        this.broadcastEvent(metadata.event, data);
+        this.broadcastEvent(data.event, data);
     }
 
 };

@@ -28,7 +28,7 @@ var _                    = require('lodash'),
     redisService         = require('./server/services/redisService'),
     redisClient          = redisService.createClient(true),
     mongoose             = require('mongoose'),
-    // io                   = require('socket.io')(server, {'pingInterval': config.sessionTimeout, 'pingTimeout': (config.sessionTimeout + 60000)}),
+    io                   = require('socket.io')(server, {'pingInterval': config.sessionTimeout, 'pingTimeout': (config.sessionTimeout + 60000)}),
     controllers          = require('./server/controllers'),
     helmet               = require('helmet'),
     session;

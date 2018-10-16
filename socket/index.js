@@ -42,6 +42,9 @@ module.exports = function (io, appRedisClient) {
 
             }
         };
+
+        console.log('yes....')
+
         pub = redisService.createClient(false, conCallback);
         sub = redisService.createClient(false, conCallback);
     });
