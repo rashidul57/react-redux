@@ -1,15 +1,16 @@
-var express = require('express'),
+const express = require('express'),
 	router = express.Router(),
-    async = require('async'),
-    _ = require('lodash');
+	async = require('async'),
+	_ = require('lodash'),
+	dataScrapper = require('../services/dataScrapper');
 
 router.get('/', function (req, res, next) {
 	try {
 
 		const query = req.query;
 		
-		console.log(req.query);
 		res.json({success: true});
+		dataScrapper.scrapeSite(req.query);
         // const table = req.query.table;
 		// const  sessionUser = req.session.user;
         // const query = {company: sessionUser.company._id};
