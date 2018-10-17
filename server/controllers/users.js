@@ -5,6 +5,7 @@ var express = require('express'),
     User = require('../models/user.js'),
     authService = require('../services/authService'),
     userService = require('../services/user'),
+    appUtil = require('../utils/appUtil'),
     _ = require('lodash'),
     mongoose = require('mongoose'),
     Schema = mongoose.Schema,
@@ -52,11 +53,9 @@ router.get('/', authService.validateSession, function(req, res, next) {
                 res.json(users);
             })
             .catch(err => {
-                errorLogger.logServerError(err, sessionUser);
                 next(err);
             })
     } catch (err) {
-        errorLogger.logServerError(err, req.session.user);
         next(err);
     }
 });
@@ -78,11 +77,9 @@ router.get('/:id', function(req, res, next) {
                 }
             })
             .catch(err => {
-                errorLogger.logServerError(err);
                 next(err);
             });
     } catch (err) {
-        errorLogger.logServerError(err);
         next(err);
     }
 });
@@ -98,12 +95,10 @@ router.delete('/:id', authService.validateSession, function(req, res, next) {
                 res.json(user);
             })
             .catch(err => {
-                errorLogger.logServerError(err, sessionUser);
                 next(err);
             });
 
     } catch (err) {
-        errorLogger.logServerError(err, req.session.user);
         next(err);
     }
 });
@@ -119,11 +114,9 @@ router.get('/byEmail/:email', authService.validateSession, function(req, res, ne
                 res.json(user);
             })
             .catch(err => {
-                errorLogger.logServerError(err, req.session.user);
                 next(err);
             })
     } catch (err) {
-        errorLogger.logServerError(err, req.session.user);
         next(err);
     }
 });
@@ -144,15 +137,12 @@ router.post('/', function(req, res, next) {
                         res.json(newUser);
                     })
                     .catch(err => {
-                        errorLogger.logServerError(err, sessionUser);
                         next(err);
                     });
             }).catch(err => {
-                errorLogger.logServerError(err, sessionUser);
                 next(err);
             });
     } catch (err) {
-        errorLogger.logServerError(err, req.session.user);
         next(err);
     }
 });
@@ -172,18 +162,15 @@ router.post('/login', function(req, res, next) {
         userService
             .login(email, password)
             .then(userInfo => {
-                userInfo.user = userService.injectAdditionalProps(userInfo.user);
                 req.session.user = userInfo.user;
 
                 res.json(userInfo);
             })
             .catch(err => {
-                errorLogger.logServerError(err);
                 return next(err);
             });
 
     } catch (err) {
-        errorLogger.logServerError(err);
         next(err);
     }
 });
@@ -235,11 +222,30 @@ router.post('/forgotPassword', function(req, res, next) {
 
         userService.forgotPassword(data, function(err) {
             if (err) {
-                errorLogger.logServerError(err);
                 return next(err);
             }
             res.json({ success: true });
         });
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+router.get('/session/validateMe', function(req, res, next) {
+    try {
+        if (req.session && req.session.shadowLogin) {
+            req.session.destroy();
+            delete req.session;
+        }
+        var loggedIn = req.session ? (!!req.session.user) : false;
+        var userInfo = {
+            loggedIn: loggedIn
+        };
+        if (loggedIn) {
+            userInfo.user = req.session.user;
+        }
+        res.json(userInfo);
     } catch (err) {
         errorLogger.logServerError(err);
         next(err);

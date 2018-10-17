@@ -39,11 +39,8 @@ module.exports = function (io, appRedisClient) {
                     var name =  file.replace(/\.js$/, '');
                     require('./' + name)(socket, pub, sub, io, appRedisClient);
                 });
-
             }
         };
-
-        console.log('yes....')
 
         pub = redisService.createClient(false, conCallback);
         sub = redisService.createClient(false, conCallback);

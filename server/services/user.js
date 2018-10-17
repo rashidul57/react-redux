@@ -155,6 +155,42 @@ module.exports = {
                 .catch(err => { reject(err); })
         });
     },
+    login: function(email, password) {
+        return new Promise((resolve, reject) => {
+            var userInfo = { loggedIn: false };
+            var query = { email: email };
+            this.getSessionUser(query).then(user => {
+                if (user) {
+                    if (!user.mAccess && !user.collaborator) {
+                        return reject({ status: 400, message: "You are not authorized to login. Please contact sales@sentinellabs.io." });
+                    }
+                    passwordService.comparePassword(password, user.password).then(function(result) {
+                        if (result.matched) {
+                            user = _.omit(user, 'password');
+                            userInfo = {
+                                loggedIn: true,
+                                user: user
+                            };
+                            resolve(userInfo);
+                        } else {
+                            userInfo.loginError = "Invalid User Name or Password";
+                            reject({ status: 400, messgae: userInfo.loginError });
+                        }
+                    }).catch(ex => {
+                        console.log("Password compare error ", ex);
+                        userInfo.loginError = "Invalid User Name or Password";
+                        reject({ status: 400, messgae: userInfo.loginError });
+                    });
+
+                } else {
+                    userInfo.loginError = "Invalid User Name or Password";
+                    reject({ status: 400, messgae: userInfo.loginError });
+                }
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    },
     getSessionUser: function(query) {
         return new Promise((resolve, reject) => {
             var baseCmd = User.findOne(query).select('+password');
@@ -204,94 +240,13 @@ module.exports = {
             }).catch(err => { reject(err); });
         });
     },
-
-    updateUser: function(sessionUser, userData) {
-        var me = this;
-        return new Promise(function(resolve, reject) {
-            User.findOne({ _id: userData._id }).populate('company').populate('location').exec().then(foundUser => {
-                if (foundUser) {
-                    const originalUserData = foundUser.toJSON();
-
-                    checkEmail(userData, foundUser, function(err, isValidEmail) {
-                        if (isValidEmail) {
-                            if (sessionUser && sessionUser._id) {
-                                if (foundUser._id.toString() !== sessionUser._id && !sessionUser.admin) {
-                                    return reject({ message: "Only Admin can edit other user's profile." });
-                                }
-
-                                if (!sessionUser.super && (foundUser.admin !== userData.admin || foundUser.mAccess !== userData.mAccess)) {
-                                    return reject({ message: "Only Super user can change admin and mAccess properties." });
-                                }
-                            } else if (_.indexOf(process.argv, 'clean') === -1) {
-                                return reject({ message: "Only Admin/Super user can edit users." });
-                            }
-
-                            //password change isn't allowed with update api
-                            delete userData.password;
-                            _.keys(userData).forEach(function(key) {
-                                if (_.includes(editableFields, key) && userData[key] !== undefined) {
-                                    foundUser.set(key, userData[key]);
-                                }
-                            });
-
-                            foundUser.set("serviceProvider", userData.identity !== "Investor" ? true : false);
-                            foundUser.save().then(savedData => {
-                                    var baseCmd = User.findOne({ _id: savedData._id });
-                                    populateUserDetail(baseCmd)
-                                        .lean().exec().then(updatedUser => {
-                                            userData._id = updatedUser._id;
-                                            addRemoveContact(userData, sessionUser, 'add').then(() => {
-                                                broadcastToUser(sessionUser, updatedUser);
-                                                activityLogService.addActivityLogForUpdateItem('User', originalUserData, updatedUser, sessionUser);
-                                                resolve(updatedUser);
-                                            }).catch(err => { reject(err); });
-                                        })
-                                        .catch(err => { reject(err); });
-                                })
-                                .catch(err => { reject(err); });
-                        } else {
-                            reject({ message: "Email is not available as there is already an user with same email." });
-                        }
-                    });
-                } else {
-                    reject({ message: "User not found in the system" });
-                }
-            }).catch(err => { reject(err); });
-        });
+    injectAdditionalProps: function(user) {
+        if (user) {
+            user.sessionTimeout = config.sessionTimeout;
+        }
+        return user;
     },
-    changePassword: function(sessionUser, userData) {
-        return new Promise(function(resolve, reject) {
-            User.findOne({ email: sessionUser.email }).select('password').exec().then(user => {
-                    passwordService.comparePassword(userData.currentPassword, user.password)
-                        .then(function(result) {
-                            if (result.matched) {
-                                passwordService.encryptPassword(userData.newPassword)
-                                    .then(function(encPassword) {
-                                        User.findOneAndUpdate({ "_id": sessionUser._id }, { "$set": { password: encPassword, passwordSet: true } }, { new: true })
-                                            .exec().then(user => {
-                                                resolve(user);
-                                            }).catch(function(err) {
-                                                reject(err);
-                                            });
-                                    })
-                                    .catch(function(err) {
-                                        console.log("password encryption error", err);
-                                        reject(err);
-                                    });
-                            } else {
-                                reject({ message: "Old Password didn't match." });
-                            }
-                        })
-                        .catch(function(err) {
-                            console.log("Current password comparison error", err);
-                            reject(err);
-                        });
-                })
-                .catch(function(err) {
-                    reject(err);
-                });
-        });
-    },
+
     broadcastToUser: broadcastToUser,
     generateRandomString: generateRandomString,
     getEncriptedPassword: getEncriptedPassword

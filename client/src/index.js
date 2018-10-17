@@ -1,13 +1,11 @@
 import React from 'react';
 import ReactDOM from "react-dom";
-import { ParamForm } from './scraping/ParamForm.js';
-import { Login } from './login/Login.js';
-import { socket } from './services/socketClient';
-
-
+import { ScrapeForm } from './scraping/ScrapeForm.js';
+import { App } from './App.js';
+import { socket } from './services/socketIoService';
 
 ReactDOM.render(
-    <Login />,
+    <App />,
     document.getElementById('root')
 );
 

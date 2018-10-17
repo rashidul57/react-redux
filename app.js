@@ -27,6 +27,7 @@ var _                    = require('lodash'),
     redisStore           = require('connect-redis')(expressSession),
     redisService         = require('./server/services/redisService'),
     redisClient          = redisService.createClient(true),
+    socketRoutes         = require('./server/socket'),
     mongoose             = require('mongoose'),
     io                   = require('socket.io')(server, {'pingInterval': config.sessionTimeout, 'pingTimeout': (config.sessionTimeout + 60000)}),
     controllers          = require('./server/controllers'),
@@ -112,27 +113,29 @@ app.disable('csp');
 app.use(morgan('dev'));
 
 // Socket.IO Session integration from express
-// io.set('authorization', function(handshake, accept) {
-//     session(handshake, {}, function (err) {
-//         if (err) {
-//             console.log('err', err);
-//             accept(err);
-//         } else {
-//             var session = handshake.session;
-//             // check if the session is valid
-//             var isAuthorised = (session && session.user && session.user._id);
-//             if (isAuthorised){
-//                 accept(null, isAuthorised);
-//             } else {
-//                 accept('NOT_AUTHORISED');
-//             }
-//         }
-//     });
-// });
+io.set('authorization', function(handshake, accept) {
+    session(handshake, {}, function (err) {
+        if (err) {
+            console.log('err', err);
+            accept(err);
+        } else {
+            var session = handshake.session;
+            // check if the session is valid
+            var isAuthorised = (session && session.user && session.user._id);
+            if (isAuthorised){
+                accept(null, isAuthorised);
+            } else {
+                accept('NOT_AUTHORISED');
+            }
+        }
+    });
+});
 
 //Boot routes(along with controllers)
 controllers.call(this, app);
 
+//Boot socket routes
+socketRoutes.call(this, io, redisClient);
 
 app.get('/:route(|index|static/*)', handlePageRequest);
 
