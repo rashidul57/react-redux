@@ -1,11 +1,12 @@
 import React from 'react';
-import { UtilService } from '../services/UtilService.js';
+import { UtilService } from '../services/utilService.js';
 import { SocketIoService } from '../services/socketIoService';
+import { Provider, connect } from 'react-redux';
 
-export class Login extends React.Component {
+class Login extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {email: 'jmay@primefinance.com', password: 'newyork952'};
+        this.state = {email: 'rashid@sentinellabs.io', password: 'newyork952'};
     }
   
     handleChange(event, prop) {
@@ -26,12 +27,12 @@ export class Login extends React.Component {
         })
         .then(res => res.json())
         .then((result) => {
-            // console.log(result);
-            SocketIoService.init('new-session');//.subscribe((value) => {
-              // delete this.appData.sentNewSessionReq;
-              // const sessionUser = payload;
-              // this.appData.sessionUser = sessionUser;
-          //});
+            this.setState({isLoggedIn: result.loggedIn});
+            this.props.dispatch({
+              type: 'SET_SESSION_USER',
+              payload: result.user || null
+            });
+            SocketIoService.init('new-session');
           },
           (error) => {
             this.setState({
@@ -62,3 +63,7 @@ export class Login extends React.Component {
         );
     }
 }
+
+Login = connect()(Login);
+
+export { Login };

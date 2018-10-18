@@ -253,5 +253,21 @@ router.get('/session/validateMe', function(req, res, next) {
 });
 
 
+router.get('/session/logout', function(req, res, next) {
+    try {
+        if (req.session && req.session.user) {
+            req.session.destroy();
+            delete req.session;
+            res.json({ done: true });
+        } else {
+            res.json({ done: true });
+        }
+
+    } catch (err) {
+        errorLogger.logServerError(err);
+        next(err);
+    }
+});
+
 //export router object
 module.exports = router;

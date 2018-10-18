@@ -1,0 +1,2 @@
+
+const SET_SESSION_USER = 'SET_SESSION_USER';

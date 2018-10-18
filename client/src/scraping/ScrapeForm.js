@@ -5,6 +5,7 @@ import { add } from '../services/dataService';
 export class ScrapeForm extends React.Component {
     constructor(props) {
         super(props);
+        debugger
         this.state = {findText: 'General Contractor', location: 'Hartford, CT'};
     }
   
