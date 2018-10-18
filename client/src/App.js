@@ -3,11 +3,10 @@ import { SocketIoService } from './services/socketIoService';
 import { ScrapeForm } from './scraping/ScrapeForm.js';
 import { Login } from './login/Login.js';
 import { Header } from './header/Header.js';
-import { Provider, connect } from 'react-redux';
 import { store } from './redux/store.js';
 
 
-class App extends React.Component {
+export class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = this.state || {};
@@ -20,7 +19,7 @@ class App extends React.Component {
         .then(res => res.json())
         .then((result) => {
             SocketIoService.init('new-session');
-            this.props.dispatch({
+            store.dispatch({
                 type: 'SET_SESSION_USER',
                 payload: result.user || null
               });
@@ -53,9 +52,3 @@ class App extends React.Component {
         return content;
     }
 }
-
-
-App = connect()(App);
-
-export { App };
-

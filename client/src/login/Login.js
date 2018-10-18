@@ -1,9 +1,9 @@
 import React from 'react';
 import { UtilService } from '../services/utilService.js';
 import { SocketIoService } from '../services/socketIoService';
-import { Provider, connect } from 'react-redux';
+import { store } from '../redux/store.js';
 
-class Login extends React.Component {
+export class Login extends React.Component {
     constructor(props) {
         super(props);
         this.state = {email: 'rashid@sentinellabs.io', password: 'newyork952'};
@@ -28,7 +28,7 @@ class Login extends React.Component {
         .then(res => res.json())
         .then((result) => {
             this.setState({isLoggedIn: result.loggedIn});
-            this.props.dispatch({
+            store.dispatch({
               type: 'SET_SESSION_USER',
               payload: result.user || null
             });
@@ -63,7 +63,3 @@ class Login extends React.Component {
         );
     }
 }
-
-Login = connect()(Login);
-
-export { Login };
