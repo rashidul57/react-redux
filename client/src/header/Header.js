@@ -1,6 +1,8 @@
 import React from 'react';
 import { Provider, connect } from 'react-redux';
 import { store } from '../redux/store.js';
+import Button from '@material-ui/core/Button';
+import './header.scss';
 
 class Header extends React.Component {
     constructor(props) {
@@ -40,9 +42,9 @@ class Header extends React.Component {
             welsomeMsg = "Welcome: " + this.props.state.sessionUser.fullName;
         }
         return (
-            <div class='row'>
+            <div class='row header'>
               {welsomeMsg}
-              <input type='button' value='Logout' onClick={(ev) => this.logout(ev)}></input>
+              <Button color="primary" onClick={(ev) => this.logout(ev)}>Logout</Button>
             </div>
         );
     }

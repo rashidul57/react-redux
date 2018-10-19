@@ -1,11 +1,12 @@
 import React from 'react';
 import './form.scss';
-import { add } from '../services/dataService';
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+
 
 export class ScrapeForm extends React.Component {
     constructor(props) {
         super(props);
-        debugger
         this.state = {findText: 'General Contractor', location: 'Hartford, CT'};
     }
   
@@ -25,14 +26,8 @@ export class ScrapeForm extends React.Component {
           (result) => {
             console.log(result);
           },
-          // Note: it's important to handle errors here
-          // instead of a catch() block so that we don't swallow
-          // exceptions from actual bugs in components.
-          (error) => {
-            this.setState({
-              isLoaded: true,
-              error
-            });
+          (err) => {
+            console.log(err);
           }
         )
     }
@@ -41,18 +36,33 @@ export class ScrapeForm extends React.Component {
         return (
           <form onSubmit={(ev) => this.handleSubmit(ev)}>
             <div class='row'>
-              <label>
+              {/* <label>
                 Find:
                 <input type="text" value={this.state.findText} onChange={(ev) => this.handleChange(ev, 'findText')}/>
-              </label>
+              </label> */}
+              <TextField
+                  label="Find"
+                  value={this.state.findText}
+                  onChange={(ev) => this.handleChange(ev, 'findText') }
+                  margin="normal"
+                  variant="outlined"
+                />
             </div>
             <div class='row'>
-              <label>
+              {/* <label>
                 location:
                 <input type="text" value={this.state.location} onChange={(ev) => this.handleChange(ev, 'location') }/>
-              </label>
+              </label> */}
+
+              <TextField
+                  label="Location"
+                  defaultValue={this.state.location}
+                  onChange={(ev) => this.handleChange(ev, 'location') }
+                  margin="normal"
+                  variant="outlined"
+                />
             </div>
-            <input type="submit" value="Submit" />
+            <Button type="submit" variant="contained" color="primary" className="button">Submit</Button>
           </form>
         );
     }

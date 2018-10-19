@@ -2,6 +2,8 @@ import React from 'react';
 import { UtilService } from '../services/utilService.js';
 import { SocketIoService } from '../services/socketIoService';
 import { store } from '../redux/store.js';
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
 
 export class Login extends React.Component {
     constructor(props) {
@@ -42,23 +44,31 @@ export class Login extends React.Component {
           }
         )
     }
+
+    
+    
   
     render() {
         return (
           <form onSubmit={(ev) => this.handleSubmit(ev)}>
             <div class='row'>
-              <label>
-                Email:
-                <input type="text" value={this.state.email}/>
-              </label>
+              <TextField
+                  label="Email"
+                  value={this.state.email}
+                  onChange={(ev) => this.handleChange(ev, 'findText') }
+                  margin="normal"
+                  variant="outlined"
+                />
             </div>
             <div class='row'>
-              <label>
-                Password:
-                <input type="text" value={this.state.password}/>
-              </label>
+              <TextField
+                  label="Password"
+                  value={this.state.password}
+                  margin="normal"
+                  variant="outlined"
+                />
             </div>
-            <input type="submit" value="Login" />
+            <Button type="submit" variant="contained" color="primary" className="button">Login</Button>
           </form>
         );
     }
