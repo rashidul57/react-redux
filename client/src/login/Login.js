@@ -1,9 +1,11 @@
 import React from 'react';
-import { UtilService } from '../services/utilService.js';
-import { SocketIoService } from '../services/socketIoService';
-import { store } from '../redux/store.js';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
+
+// custom imports
+import { store } from '../redux/store.js';
+import { UtilService } from '../services/utilService.js';
+import { socketIoService } from '../services/socketIoService';
 
 export class Login extends React.Component {
     constructor(props) {
@@ -34,7 +36,7 @@ export class Login extends React.Component {
               type: 'SET_SESSION_USER',
               payload: result.user || null
             });
-            SocketIoService.init('new-session');
+            socketIoService.init('new-session');
           },
           (error) => {
             this.setState({
@@ -44,17 +46,15 @@ export class Login extends React.Component {
           }
         )
     }
-
-    
-    
   
     render() {
         return (
-          <form onSubmit={(ev) => this.handleSubmit(ev)}>
+          <form noValidate autoComplete="off" onSubmit={(ev) => this.handleSubmit(ev)}>
             <div class='row'>
               <TextField
+                  id="outlined-name"
                   label="Email"
-                  value={this.state.email}
+                  defaultValue={this.state.email}
                   onChange={(ev) => this.handleChange(ev, 'findText') }
                   margin="normal"
                   variant="outlined"
@@ -63,7 +63,7 @@ export class Login extends React.Component {
             <div class='row'>
               <TextField
                   label="Password"
-                  value={this.state.password}
+                  defaultValue={this.state.password}
                   margin="normal"
                   variant="outlined"
                 />

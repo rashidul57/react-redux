@@ -1,13 +1,13 @@
 const puppeteer = require('puppeteer');
 const axios = require('axios');
 const async = require('async');
-const sessionSocketService = require('./sessionSocketService');
+const sessionSocketService = require('../sessionSocketService');
 
 module.exports = {
     scrapeSite: scrapeSite
 }
 
-function scrapeSite(params) {
+function scrapeSite(params, sessionUser) {
     return new Promise((resolve,  reject) => {
         const findText = params.findText; // 'General'
         const location = params.location; // 'Hartford CT'
@@ -20,7 +20,7 @@ function scrapeSite(params) {
                     value.link = link;
                     data.push(value);
                     console.log(value);
-                    sessionSocketService.relayProgress({counter: counter, event: 'scraping-update', bypassSession: true});
+                    sessionSocketService.relayProgress({user: sessionUser, counter: counter, event: 'scraping-update', bypassSession: true});
                     counter++;
                     done();
                 });

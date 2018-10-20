@@ -108,11 +108,15 @@ module.exports = {
         }
     },
     relayProgress: function (data={}) {
-        if (!data.event) {
-            return console.log('socket event not provided');
+        try{
+            if (!data.event) {
+                return console.log('socket event not provided');
+            }
+            // console.log('data', data);
+            this.broadcastEvent(data.event, data);
+        } catch(err) {
+            console.log('error in relay progress');
         }
-        // console.log('data', data);
-        this.broadcastEvent(data.event, data);
     }
 
 };

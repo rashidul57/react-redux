@@ -2,30 +2,24 @@ const express = require('express'),
 	router = express.Router(),
 	async = require('async'),
 	_ = require('lodash'),
-	dataScrapper = require('../services/dataScrapper');
+	bbbScrapper = require('../services/scrappers/bbb'),
+	reoindustryScrapper = require('../services/scrappers/reoindustry');
 
 router.get('/', function (req, res, next) {
 	try {
-
+		const sessionUser = req.session.user;
 		const query = req.query;
-		
 		res.json({success: true});
-		dataScrapper.scrapeSite(req.query);
-        // const table = req.query.table;
-		// const  sessionUser = req.session.user;
-        // const query = {company: sessionUser.company._id};
-		// if (table) {
-		// 	query.table = table;
-		// }
-        // reportService
-		// 	.find(query, sessionUser)
-		// 	.then(tables => {
-		// 		res.json(tables);
-		// 	})
-		// 	.catch(err => {
-		// 		errorLogger.logServerError(err, req.session.user);
-		// 		next(err);
-		// 	});
+
+		switch (query.site) {
+			case 'bbb':
+			bbbScrapper.scrapeSite(query, sessionUser);
+			break;
+
+			case 'reoindustry':
+			reoindustryScrapper.scrapeSite(query, sessionUser);
+			break;
+		}
 	}
 	catch (err) {
 		next(err);

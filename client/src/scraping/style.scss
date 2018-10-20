@@ -1,0 +1,40 @@
+body{
+    overflow: hidden;
+    #root, #root>div{
+        height: 100%;
+    }
+    .sections{
+        display: grid;
+        grid-template-columns: 30% 70%;
+        grid-column-gap: 20px;
+        width: 1500px;
+        margin: 0 auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: calc(100% - 200px);
+        overflow: hidden;
+    }
+    form{
+        display: 'flex';
+        flex-wrap: 'wrap';
+        margin: 100px auto;
+        width: 300px;
+        display: grid;
+        grid-row-gap: 10px;
+        input{
+            width: 100%;
+        }
+    }
+    .output-section{
+        height: 100%;
+        overflow: hidden;
+        .output-data{
+            display: grid;
+            grid-template-columns: 40% 60%;
+            grid-column-gap: 20px;
+            height: 100%;
+            overflow: auto;
+        }
+    }
+
+}

@@ -1,9 +1,14 @@
 import { createStore, combineReducers } from 'redux';
 
+const initialScrapingData = {
+    linkCount: 0,
+    scrappedData: []
+};
 
 const reducer = combineReducers({
     sessionUser: sessionReducer,
-    chats: chatReducer
+    chats: chatReducer,
+    scraping: scrapingReducer
 });
 
 function sessionReducer(state=null, action) {
@@ -32,6 +37,28 @@ function chatReducer(state=[], action) {
         }
     }
 }
+
+function scrapingReducer(state=initialScrapingData, action) {
+    switch (action.type) {
+        case 'SET_LINK_COUNT': {
+            return {
+                ...state,
+                linkCount: action.payload
+            };
+        }
+        case 'SET_SCRAPED_DATA': {
+            const data = state.scrappedData.push(action.payload);
+            return {
+                ...state,
+                scrappedData: data
+            };
+        }
+        default: {
+            return state;
+        }
+    }
+}
+
   
 const store = createStore(reducer);
 

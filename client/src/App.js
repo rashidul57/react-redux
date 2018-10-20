@@ -1,5 +1,5 @@
 import React from 'react';
-import { SocketIoService } from './services/socketIoService';
+import { socketIoService } from './services/socketIoService';
 import { ScrapeForm } from './scraping/ScrapeForm.js';
 import { Login } from './login/Login.js';
 import { Header } from './header/Header.js';
@@ -18,7 +18,7 @@ export class App extends React.Component {
         })
         .then(res => res.json())
         .then((result) => {
-            SocketIoService.init('new-session');
+            socketIoService.init('new-session');
             store.dispatch({
                 type: 'SET_SESSION_USER',
                 payload: result.user || null

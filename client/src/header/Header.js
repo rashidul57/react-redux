@@ -1,8 +1,10 @@
 import React from 'react';
 import { Provider, connect } from 'react-redux';
-import { store } from '../redux/store.js';
 import Button from '@material-ui/core/Button';
-import './header.scss';
+
+// custom imports
+import { store } from '../redux/store.js';
+import './style.scss';
 
 class Header extends React.Component {
     constructor(props) {
@@ -23,7 +25,6 @@ class Header extends React.Component {
       })
       .then(res => res.json())
       .then((result) => {
-          // SocketIoService.init('new-session');
           this.setState({isLoggedIn: false});
           this.props.dispatch({
               type: 'SET_SESSION_USER',
