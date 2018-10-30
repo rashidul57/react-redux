@@ -2,7 +2,7 @@ This is a sample scraping application built using React, Redux, Socket.io, node.
 
 It contains simple login and then allows to provide search key and location that is required for the corresponding websites scraping. Using socket.io it show update/progress in ui
 
-How to run the application
+## How to run the application
 1. Make sure you have installed MongoDB and Redis and node.js
 
 2. add the following data in mongodb with database name 'scraping' and collection name 'users'
