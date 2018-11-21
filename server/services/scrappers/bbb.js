@@ -23,8 +23,7 @@ function scrapeSite(params, sessionUser) {
                     sessionSocketService.relayProgress({
                         user: sessionUser,
                         counter: counter,
-                        event: 'scraping-update',
-                        bypassSession: true
+                        event: 'scraping-update'
                     });
                     counter++;
                     done();

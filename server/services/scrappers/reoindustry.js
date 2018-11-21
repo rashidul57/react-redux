@@ -17,11 +17,13 @@ function scrapeSite(params, sessionUser) {
             async.eachSeries(links, (link, done)=> {
                 scrapeData(link).then((value) => {
                     value.profileUrl = baseUrl + link;
-                    data.push(value);
-                    console.log(value);
-                    sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Scraped data for link ' + counter + ' among ' + links.length, value: value, complete: counter === links.length});
-                    counter++;
-                    done();
+                    injectEmail(value).then(value => {
+                        data.push(value);
+                        console.log(value);
+                        sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Scraped data for link ' + counter + ' among ' + links.length, value: value, complete: counter === links.length});
+                        counter++;
+                        done();
+                    }).catch(err => console.log(err));
                 });
             }, () => {
                 resolve(data);
@@ -30,13 +32,26 @@ function scrapeSite(params, sessionUser) {
     });
 }
 
+function injectEmail(value) {
+    return new Promise((resolve,  reject) => {
+        axios.get(baseUrl + value.email)
+            .then(function (resp) {
+                value.email = resp.data;
+                resolve(value);
+            })
+            .catch(function (error) {
+                reject(error);
+            });
+    });
+}
+
 function recursePages(findText, page, links, sessionUser) {
     return new Promise((resolve,  reject) => {
         const url = baseUrl + '/find-reo-agents/' + findText + "?page=" + page;
         findLinks(url, findText, page).then(_links => {
-            if (_links && _links.length && page < 5) {
+            if (_links && _links.length && page < 2) {
                 links = links.concat(_links);
-                sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Finding Links for page: ' + page, links: _links, bypassSession: true});
+                sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Finding Links for page: ' + page, links: _links});
                 resolve(recursePages(findText, ++page, links, sessionUser));
             } else {
                 resolve(links);
@@ -93,22 +108,30 @@ async function scrapeData(link) {
                 document.querySelector('#phones .info:nth-child(3)')
             ]);
 
+            let email = getEmail(document.querySelector('#phones #email'));
+
             let info = getData([
                 document.querySelector('#agent-company .info:nth-child(1)'),
                 document.querySelector('#agent-company .info:nth-child(5)')
             ]);
-            return {name, company, title, address, phones, info};
+
+            return {name, company, title, address, phones, info, email};
 
 
             function getData(elements) {
                 const data = [];
                 elements.forEach(element => {
-                    if (element && element.innerText) {
+                    if (element && element.innerText && element.innerText.indexOf('Click') === -1) {
                         data.push(element.innerText);
                     }
                 });
                 return data.join(', ');
             }
+
+            function getEmail(element) {
+                return element.getAttribute('href');
+            }
+
         });
 
         browser.close();
@@ -120,6 +143,6 @@ async function scrapeData(link) {
 };
 
 
-// scrapeSite({
-//     findText: 'new york'
-// });
+scrapeSite({
+    findText: 'new york'
+});

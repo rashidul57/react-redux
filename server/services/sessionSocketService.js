@@ -78,12 +78,12 @@ module.exports = {
             return (con.user && con.user._id && params.user && params.user._id && con.user._id.toString() === params.user._id.toString());
         });
 
-        if (userConnection || params.bypassSession) {
+        if (userConnection && userConnection.pub) {
             setImmediate(function () {
                 userConnection.pub.publish(channel, JSON.stringify(params));
             });
         } else {
-            console.log('Failed to broadcast ', channel, ' probably user is not connected.');
+            // console.log('Failed to broadcast ', channel, ' probably user is not connected.');
         }
     },
 	broadcastEventByUserId: function (channel, userId, params) {
