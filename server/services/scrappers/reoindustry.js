@@ -3,11 +3,14 @@ const axios = require('axios');
 const async = require('async');
 const sessionSocketService = require('../sessionSocketService');
 const baseUrl = 'https://www.reoindustrydirectory.com';
+var fs = require('fs');
 
 module.exports = {
     scrapeSite: scrapeSite
 }
 
+
+const allowPage = 2; // 'all';
 function scrapeSite(params, sessionUser) {
     return new Promise((resolve,  reject) => {
         const findText = params.findText.replace(/[\s]/g, '-'); // 'new york'
@@ -19,7 +22,7 @@ function scrapeSite(params, sessionUser) {
                     value.profileUrl = baseUrl + link;
                     injectEmail(value).then(value => {
                         data.push(value);
-                        console.log(value);
+                        console.log(counter, value);
                         sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Scraped data for link ' + counter + ' among ' + links.length, value: value, complete: counter === links.length});
                         counter++;
                         done();
@@ -49,7 +52,7 @@ function recursePages(findText, page, links, sessionUser) {
     return new Promise((resolve,  reject) => {
         const url = baseUrl + '/find-reo-agents/' + findText + "?page=" + page;
         findLinks(url, findText, page).then(_links => {
-            if (_links && _links.length && page < 2) {
+            if (_links && _links.length && (page < allowPage || allowPage === 'all')) {
                 links = links.concat(_links);
                 sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Finding Links for page: ' + page, links: _links});
                 resolve(recursePages(findText, ++page, links, sessionUser));
@@ -145,4 +148,8 @@ async function scrapeData(link) {
 
 scrapeSite({
     findText: 'new york'
+}).then((data) => {
+    fs.writeFile('reo.json', JSON.stringify(data), 'utf8', () => {
+        console.log('Done!');
+    });
 });
