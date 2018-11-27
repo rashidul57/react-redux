@@ -10,28 +10,43 @@ module.exports = {
 }
 
 
-const allowPage = 2; // 'all';
+const allowPage = 2; //'all';
+const range = 200;
 function scrapeSite(params, sessionUser) {
     return new Promise((resolve,  reject) => {
         const findText = params.findText.replace(/[\s]/g, '-'); // 'new york'
         recursePages(findText, 1, [], sessionUser).then((links) => {
             const data = [];
             let counter = 1;
+            console.log('Links finding complete. found', links.length);
             async.eachSeries(links, (link, done)=> {
                 scrapeData(link).then((value) => {
                     value.profileUrl = baseUrl + link;
                     injectEmail(value).then(value => {
                         data.push(value);
-                        console.log(counter, value);
+                        // console.log(counter, value);
                         sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Scraped data for link ' + counter + ' among ' + links.length, value: value, complete: counter === links.length});
+                        
+                        if (counter % range === 0) {
+                            const temp = data;
+                            writeFile(temp, counter);
+                            data = [];
+                        }
                         counter++;
                         done();
                     }).catch(err => console.log(err));
                 });
             }, () => {
+                writeFile(data, counter);
                 resolve(data);
             });
         });
+    });
+}
+
+function writeFile(data, count) {
+    fs.writeFile(`./json/reo-${count}.json`, JSON.stringify(data), 'utf8', () => {
+        // console.log('Done!');
     });
 }
 
@@ -149,7 +164,5 @@ async function scrapeData(link) {
 scrapeSite({
     findText: 'new york'
 }).then((data) => {
-    fs.writeFile('reo.json', JSON.stringify(data), 'utf8', () => {
-        console.log('Done!');
-    });
-});
+    console.log('Done!');
+}).catch(err=> console.log(err));
