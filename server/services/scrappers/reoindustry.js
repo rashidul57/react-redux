@@ -10,7 +10,7 @@ module.exports = {
 }
 
 
-const allowPage = 2; //'all';
+const allowPage = 'all';
 const range = 200;
 function scrapeSite(params, sessionUser) {
     return new Promise((resolve,  reject) => {
