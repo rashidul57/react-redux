@@ -9,50 +9,21 @@ module.exports = {
     scrapeSite: scrapeSite
 }
 
-
 const startPage = 1;
-// const range = 200;
+const allowPage = 'all';
+const data = [];
 function scrapeSite(params, sessionUser) {
     return new Promise((resolve,  reject) => {
         const findText = params.findText.replace(/[\s]/g, '-'); // 'new york'
-        let links = [];
-        async.eachSeries(['page', 'bpage'], (pageType, done) => {
-            recursePages(findText, startPage, pageType, links, sessionUser).then((_links) => {
-                links = _links;
-                done();
-            });
-        }, () => {
-            const data = [];
-            let counter = 1;
-            console.log('Links finding complete. found', links.length);
-            async.eachSeries(links, (link, done)=> {
-                scrapeData(link).then((value) => {
-                    value.profileUrl = baseUrl + link;
-                    injectEmail(value).then(value => {
-                        data.push(value);
-                        console.log(counter, value);
-                        sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Scraped data for link ' + counter + ' among ' + links.length, value: value, complete: counter === links.length});
-                        
-                        // if (counter % range === 0) {
-                        //     const temp = data;
-                        //     writeFile(temp, counter);
-                        //     data = [];
-                        //     console.log('written json in file: reo-', counter, '.json')
-                        // }
-                        counter++;
-                        done();
-                    }).catch(err => console.log(err));
-                });
-            }, () => {
-                writeFile(data, counter);
-                resolve(data);
-            });
+        recursePages(findText, startPage, sessionUser).then((done) => {
+            writeFile(data);
+            resolve(done);
         });
     });
 }
 
-function writeFile(data, count) {
-    fs.writeFile(`./json/reo-.json`, JSON.stringify(data), 'utf8', () => {
+function writeFile(data) {
+    fs.writeFile(`./json/reo.json`, JSON.stringify(data), 'utf8', () => {
         // console.log('Done!');
     });
 }
@@ -70,61 +41,80 @@ function injectEmail(value) {
     });
 }
 
-function recursePages(findText, page, pageType, links, sessionUser) {
+function recursePages(findText, page, sessionUser) {
     return new Promise((resolve,  reject) => {
-        const url = baseUrl + '/find-reo-agents/' + findText + "?" + pageType + "=" + page;
-        findLinks(url, findText, page, pageType).then(_links => {
-            debugger
-            if (_links && (pageType === 'page' && _links.length < 3)) {
-                scrapeData(_links[0]).then((value) => {
-                    if (value.title === 'Website Promotion') {
-                        resolve(links);
-                    } else {
-                        goForNext(findText, links, _links, page, pageType, sessionUser, resolve);
-                    }
-                });
-            } else {
-                if (_links && _links.length) {
-                    goForNext(findText, links, _links, page, pageType, sessionUser, resolve);
+        const url = baseUrl + '/find-reo-agents/' + findText + "?page=" + page;
+        findLinks(url, findText, page).then(links => {
+            traverseLinks(links, sessionUser).then((promotionFound) => {
+                if (promotionFound) {
+                    console.log('Pormotion found.')
+                    resolve(true);
                 } else {
-                    resolve(links);
+                    if (links && links.length && (page < allowPage || allowPage === 'all')) {
+                        sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Finding Links for page: ' + page, links: links});
+                        resolve(recursePages(findText, ++page, links, sessionUser));
+                    } else {
+                        resolve(true);
+                    }
                 }
-            }
+            });
+            
         });
     });
 }
 
-function goForNext(findText, links, _links, page, pageType, sessionUser, resolve) {
-    links = links.concat(_links);
-    sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Finding Links for page: ' + page, links: _links});
-    resolve(recursePages(findText, ++page, pageType, links, sessionUser));
+function traverseLinks(links, sessionUser) {
+    return new Promise((resolve,  reject) => {
+        let promotionFound = false;
+        let counter = 1;
+        async.eachSeries(links, (link, done) => {
+            scrapeData(link).then((value) => {
+                if (value.title === 'Website Promotion') {
+                    promotionFound = true;
+                    sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Scraped data for link ' + counter + ' among ' + links.length, value: value, complete: true});
+                    done();
+                } else {
+                    value.profileUrl = baseUrl + link;
+                    injectEmail(value).then(value => {
+                        data.push(value);
+                        console.log(counter, value);
+                        sessionSocketService.relayProgress({user: sessionUser, event: 'scraping-update', message: 'Scraped data for link ' + counter + ' among ' + links.length, value: value, complete: counter === links.length});
+
+                        counter++;
+                        done();
+                    }).catch(err => console.log(err));
+                }
+            });
+        }, () => {
+            // writeFile(data, counter);
+            resolve(promotionFound);
+        });
+    });
 }
 
-async function findLinks(url, findText, pageNum, pageType) {
+async function findLinks(url, findText, pageNum) {
     try{
         const browser = await puppeteer.launch({headless: true});
         const page = await browser.newPage();
         console.log(url);
 
         await page.goto(url, {timeout: 120000});
-        const result = await page.evaluate((pageType) => {
+        const result = await page.evaluate(() => {
             let _links = [];
-            const selector = pageType === 'page' ? '.view' : '.more-list';
-            let elements = document.querySelectorAll(selector);
+            let elements = document.querySelectorAll('.view');
             for (const el of elements) {
-                const refEl = pageType === 'page' ? el.childNodes[1] : el;
-                let link = refEl.getAttribute('href');
+                let link = el.childNodes[1].getAttribute('href');
                 _links.push(link);
             }
             return _links;
-        }, pageType);
+        });
 
         browser.close();
         return result;
 
     } catch(err) {
-        console.log('thrown exception for', pageNum, err);
-        return findLinks(findText, pageNum, pageType);
+        console.log('thrown exception for', page, err);
+        return findLinks(findText, pageNum);
     }
 }
 
