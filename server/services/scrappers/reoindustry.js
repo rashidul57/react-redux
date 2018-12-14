@@ -3,14 +3,15 @@ const axios = require('axios');
 const async = require('async');
 const sessionSocketService = require('../sessionSocketService');
 const baseUrl = 'https://www.reoindustrydirectory.com';
-var fs = require('fs');
+const fs = require('fs');
+const _ = require('lodash');
+
 
 module.exports = {
     scrapeSite: scrapeSite
 }
-
-let startPage = 1;
-function scrapeSite(params, sessionUser) {
+let prevLinks;
+function scrapeSite(params, sessionUser, startPage=1) {
     return new Promise((resolve,  reject) => {
         const findText = params.findText.replace(/[\s]/g, '-'); // 'new york'
         let links = [];
@@ -72,19 +73,23 @@ function recursePages(findText, page, pageType, links, sessionUser) {
     return new Promise((resolve,  reject) => {
         const url = baseUrl + '/find-reo-agents/' + findText + "?" + pageType + "=" + page;
         findLinks(url, findText, page, pageType).then(_links => {
-            if (_links && (pageType === 'page' && _links.length < 3)) {
-                scrapeData(_links[0]).then((value) => {
-                    if (value.title === 'Website Promotion') {
-                        resolve(links);
-                    } else {
-                        goForNext(findText, links, _links, page, pageType, sessionUser, resolve);
-                    }
-                });
+            if (_.isEqual(prevLinks, _links)) {
+                resolve(links);
             } else {
-                if (_links && _links.length) {
-                    goForNext(findText, links, _links, page, pageType, sessionUser, resolve);
+                prevLinks = _links;
+                if (_links && (pageType === 'page' && _links.length < 3)) {
+                    scrapeData(_links[0]).then((value) => {
+                        if (value.title !== 'Website Promotion') {
+                            links = links.concat(_links);
+                        }
+                        resolve(links);
+                    });
                 } else {
-                    resolve(links);
+                    if (_links && _links.length) {
+                        goForNext(findText, links, _links, page, pageType, sessionUser, resolve);
+                    } else {
+                        resolve(links);
+                    }
                 }
             }
         });
@@ -182,13 +187,14 @@ async function scrapeData(link) {
 };
 
 
-const states = ['New Jersey', 'Pennsylvania', 'Connecticut', 'Maryland', 'Florida', 'Virginia'];
+// const states = ['New Jersey', 'Pennsylvania', 'Connecticut', 'Maryland', 'Florida', 'Virginia'];
+const states = ['Connecticut', 'Maryland', 'Florida', 'Virginia'];
 
 async.eachSeries(states, (state, done) => {
-    startPage = 1;
+    let startPage = 1;
     scrapeSite({
         findText: state
-    }).then((data) => {
+    }, null, startPage).then((data) => {
         console.log(state, 'Done!');
         done();
     }).catch(err=> console.log(err));
