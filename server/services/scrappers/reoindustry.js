@@ -9,9 +9,7 @@ module.exports = {
     scrapeSite: scrapeSite
 }
 
-
-const startPage = 1;
-// const range = 200;
+let startPage = 1;
 function scrapeSite(params, sessionUser) {
     return new Promise((resolve,  reject) => {
         const findText = params.findText.replace(/[\s]/g, '-'); // 'new york'
@@ -44,15 +42,15 @@ function scrapeSite(params, sessionUser) {
                     }).catch(err => console.log(err));
                 });
             }, () => {
-                writeFile(data, counter);
+                writeFile(data, findText);
                 resolve(data);
             });
         });
     });
 }
 
-function writeFile(data, count) {
-    fs.writeFile(`./json/reo-.json`, JSON.stringify(data), 'utf8', () => {
+function writeFile(data, fileName) {
+    fs.writeFile(`./json/${fileName}.json`, JSON.stringify(data), 'utf8', () => {
         // console.log('Done!');
     });
 }
@@ -74,7 +72,6 @@ function recursePages(findText, page, pageType, links, sessionUser) {
     return new Promise((resolve,  reject) => {
         const url = baseUrl + '/find-reo-agents/' + findText + "?" + pageType + "=" + page;
         findLinks(url, findText, page, pageType).then(_links => {
-            debugger
             if (_links && (pageType === 'page' && _links.length < 3)) {
                 scrapeData(_links[0]).then((value) => {
                     if (value.title === 'Website Promotion') {
@@ -185,8 +182,14 @@ async function scrapeData(link) {
 };
 
 
-scrapeSite({
-    findText: 'new york'
-}).then((data) => {
-    console.log('Done!');
-}).catch(err=> console.log(err));
+const states = ['New Jersey', 'Pennsylvania', 'Connecticut', 'Maryland', 'Florida', 'Virginia'];
+
+async.eachSeries(states, (state, done) => {
+    startPage = 1;
+    scrapeSite({
+        findText: state
+    }).then((data) => {
+        console.log(state, 'Done!');
+        done();
+    }).catch(err=> console.log(err));
+});
